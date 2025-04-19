@@ -1,0 +1,6 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+The design document for this project is located at [DesignDocument.md](mdc:DesignDocument.md). Always refer back to this document for exactly what you need to implement. Before you start any task, review this document. You should update the features section as you implement each feature. Always refer back to the design document and keep it up to date. When you finish any task, make sure to update the document if necessary.
