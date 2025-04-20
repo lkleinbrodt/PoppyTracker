@@ -2,7 +2,7 @@
   "expo": {
     "name": "PoppyTracker",
     "slug": "poppytracker",
-    "version": "1.0.1",
+    "version": "1.1.1",
     "orientation": "portrait",
     "icon": "./assets/images/poppy-cartoon.png",
     "scheme": "poppytracker",
@@ -21,7 +21,16 @@
       "favicon": "./assets/images/poppy-cartoon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FFF8E8",
+          "image": "./assets/images/poppy-cartoon-no-bg.png",
+          "imageWidth": 120,
+          "resizeMode": "contain"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
