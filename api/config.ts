@@ -1,10 +1,10 @@
 const API_CONFIG = {
   development: {
-    baseURL: 'http://10.0.0.2:5002/api',
+    baseURL: "http://127.0.0.1:5002/api",
     timeout: 30000,
   },
   production: {
-    baseURL: 'https://api.landonkleinbrodt.com/api',
+    baseURL: "https://api.landonkleinbrodt.com/api",
     timeout: 30000,
   },
 };

@@ -60,7 +60,7 @@ const Header: React.FC<HeaderProps> = ({
         {showDogImage && user && (
           <TouchableOpacity onPress={handleSignOut}>
             <Image
-              source={require("../../assets/images/poppy.jpeg")}
+              source={require("../../assets/images/real-poppy.jpeg")}
               style={styles.image}
             />
           </TouchableOpacity>

@@ -83,6 +83,7 @@ export const updateDailyTarget = async (target: number): Promise<number> => {
  */
 export const getFeedingHistory = async (): Promise<FeedingEntry[]> => {
   const response = await apiClient.get<FeedingEntry[]>("/poppy/history");
+  console.log("history response", response);
 
   if (!response.ok || !response.data) {
     throw new Error(response.error?.message || "Failed to get feeding history");
@@ -107,30 +108,6 @@ export const submitFeedingRecord = async (
   if (!response.ok || !response.data) {
     throw new Error(
       response.error?.message || "Failed to submit feeding record"
-    );
-  }
-
-  return response.data;
-};
-
-/**
- * Update a feeding record in the API
- * @param date The date of the record to update
- * @param record The updated feeding record
- * @returns Promise with API response
- */
-export const updateFeedingRecord = async (
-  date: string,
-  record: FeedingEntry
-): Promise<FeedingEntry> => {
-  const response = await apiClient.put<FeedingEntry>(
-    `/poppy/feeding-records/${date}`,
-    record
-  );
-
-  if (!response.ok || !response.data) {
-    throw new Error(
-      response.error?.message || "Failed to update feeding record"
     );
   }
 

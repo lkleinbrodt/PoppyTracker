@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+*.ipa
+# Git
+.git/
+.gitignore
+
+# Development files
+.expo/
+.DS_Store
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Documentation
+*.md
+!README.md 

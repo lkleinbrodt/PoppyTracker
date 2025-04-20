@@ -1,12 +1,10 @@
-import * as SecureStore from "expo-secure-store";
-
-import { ApiResponse, ApisauceInstance, create } from "apisauce";
+import { ApiResponse, create } from "apisauce";
 
 import Constants from "expo-constants";
 import NetInfo from "@react-native-community/netinfo";
 import { Platform } from "react-native";
-import { getApiConfig } from "@/config";
-import { load } from "@/utils/secureStorage";
+import { getApiConfig } from "@/api/config";
+import { getToken } from "@/auth/storage";
 
 // Types
 export interface APIResponse<T> {
@@ -73,7 +71,7 @@ class APIClient {
       }
 
       // Add auth token if available
-      const token = await load("authToken");
+      const token = await getToken();
       if (token) {
         request.headers["Authorization"] = `Bearer ${token}`;
       }
@@ -138,7 +136,7 @@ class APIClient {
     });
 
     // Add auth token if available
-    const token = await load("authToken");
+    const token = await getToken();
     if (token) {
       headers.append("Authorization", `Bearer ${token}`);
     }

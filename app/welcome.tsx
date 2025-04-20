@@ -25,22 +25,22 @@ export default function WelcomeScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
 
       <LinearGradient
-        colors={["#1a1a1a", "#2a2a2a"]}
+        colors={["#FFF8E8", "#FFFCF5"]}
         style={StyleSheet.absoluteFill}
       />
 
       <View style={styles.content}>
         <Image
-          source={require("@/assets/images/poppy.jpeg")}
+          source={require("@/assets/images/poppy-cartoon-no-bg.png")}
           style={styles.logo}
           resizeMode="contain"
         />
 
         <Text style={styles.title}>PoppyTracker</Text>
-        <Text style={styles.subtitle}>Track your poppy growth and care</Text>
+        <Text style={styles.subtitle}>This dog eats!!!</Text>
 
         {Platform.OS === "ios" && (
           <AppleAuthentication.AppleAuthenticationButton
@@ -48,7 +48,7 @@ export default function WelcomeScreen() {
               AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN
             }
             buttonStyle={
-              AppleAuthentication.AppleAuthenticationButtonStyle.WHITE
+              AppleAuthentication.AppleAuthenticationButtonStyle.BLACK
             }
             cornerRadius={8}
             style={styles.appleButton}
@@ -56,18 +56,7 @@ export default function WelcomeScreen() {
           />
         )}
 
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            By continuing, you agree to our{" "}
-            <Text style={styles.link} onPress={() => {}}>
-              Terms of Service
-            </Text>{" "}
-            and{" "}
-            <Text style={styles.link} onPress={() => {}}>
-              Privacy Policy
-            </Text>
-          </Text>
-        </View>
+        <View style={styles.footer}></View>
       </View>
     </View>
   );
@@ -76,7 +65,7 @@ export default function WelcomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#1a1a1a",
+    backgroundColor: "#FFF8E8",
   },
   content: {
     flex: 1,
@@ -92,7 +81,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: "700",
-    color: "#ffffff",
+    color: "#4A3728",
     textAlign: "center",
     marginBottom: 12,
     fontFamily: Platform.select({
@@ -102,7 +91,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 17,
-    color: "#ffffff99",
+    color: "#6B5A4E",
     textAlign: "center",
     marginBottom: 48,
     lineHeight: 24,
@@ -124,12 +113,12 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 13,
-    color: "#ffffff99",
+    color: "#6B5A4E",
     textAlign: "center",
     lineHeight: 18,
   },
   link: {
-    color: "#ffffff",
+    color: "#A67B5B",
     textDecorationLine: "underline",
   },
 });

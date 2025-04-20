@@ -1,3 +1,4 @@
+import { AppState, AppStateStatus } from "react-native";
 import React, { createContext, useContext, useEffect, useReducer } from "react";
 import {
   getDailyTarget,
@@ -8,6 +9,8 @@ import {
 } from "@/api/feeding-records";
 
 import { FeedingEntry } from "@/api/feeding-records";
+import { getTodayString } from "@/utils/dateFormat";
+import { useAuth } from "@/auth/AuthContext";
 
 // Types
 type FeedingState = {
@@ -16,6 +19,7 @@ type FeedingState = {
   loading: boolean;
   error: string | null;
   lastUpdated: number;
+  lastCheckedDate: string | null;
 };
 
 type FeedingAction =
@@ -26,7 +30,8 @@ type FeedingAction =
   | { type: "SET_TOTAL"; payload: number }
   | { type: "RESET_TODAY" }
   | { type: "UPDATE_TARGET"; payload: number }
-  | { type: "SET_LAST_UPDATED"; payload: number };
+  | { type: "SET_LAST_UPDATED"; payload: number }
+  | { type: "SET_LAST_CHECKED_DATE"; payload: string };
 
 type FeedingContextType = {
   state: FeedingState;
@@ -43,6 +48,7 @@ const initialState: FeedingState = {
   loading: true,
   error: null,
   lastUpdated: 0,
+  lastCheckedDate: null,
 };
 
 // Reducer
@@ -88,6 +94,8 @@ const feedingReducer = (
       return { ...state, todayData: targetData };
     case "SET_LAST_UPDATED":
       return { ...state, lastUpdated: action.payload };
+    case "SET_LAST_CHECKED_DATE":
+      return { ...state, lastCheckedDate: action.payload };
     default:
       return state;
   }
@@ -101,31 +109,69 @@ export const FeedingProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [state, dispatch] = useReducer(feedingReducer, initialState);
+  const { user } = useAuth();
+
+  // Check for day change when app comes back into focus
+  useEffect(() => {
+    if (!user) return;
+
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      if (nextAppState === "active") {
+        const today = getTodayString();
+
+        // If we haven't checked before or it's a new day, refresh data
+        if (!state.lastCheckedDate || state.lastCheckedDate !== today) {
+          refreshData();
+          dispatch({ type: "SET_LAST_CHECKED_DATE", payload: today });
+        }
+      }
+    };
+
+    const subscription = AppState.addEventListener(
+      "change",
+      handleAppStateChange
+    );
+
+    // Also check on initial mount
+    const today = getTodayString();
+    if (!state.lastCheckedDate || state.lastCheckedDate !== today) {
+      refreshData();
+      dispatch({ type: "SET_LAST_CHECKED_DATE", payload: today });
+    }
+
+    return () => {
+      subscription.remove();
+    };
+  }, [user]);
 
   // Load initial data
   useEffect(() => {
-    refreshData();
-  }, []);
+    if (user) {
+      refreshData();
+    }
+  }, [user]);
 
   // Set up polling interval
   useEffect(() => {
+    if (!user) return;
+
     const POLLING_INTERVAL = 30000; // Poll every 30 seconds
     const intervalId = setInterval(() => {
       refreshData();
     }, POLLING_INTERVAL);
 
     return () => clearInterval(intervalId);
-  }, []);
+  }, [user]);
 
   // Check for day change
   useEffect(() => {
-    if (!state.todayData) return;
+    if (!user || !state.todayData) return;
 
-    const today = new Date().toISOString().split("T")[0];
+    const today = getTodayString();
     if (state.todayData.date !== today) {
       refreshData();
     }
-  }, [state.todayData]);
+  }, [state.todayData, user]);
 
   // Refresh data from API
   const refreshData = async () => {
@@ -139,7 +185,7 @@ export const FeedingProvider: React.FC<{ children: React.ReactNode }> = ({
         getDailyTarget(),
       ]);
 
-      const today = new Date().toISOString().split("T")[0];
+      const today = getTodayString();
       const todayData: FeedingEntry = {
         date: today,
         amountFed: total,

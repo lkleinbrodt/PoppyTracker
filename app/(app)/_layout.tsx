@@ -1,10 +1,19 @@
 import { Bone, History } from "lucide-react-native";
+import { Redirect, Tabs } from "expo-router";
 
 import Colors from "@/constants/Colors";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Tabs } from "expo-router";
+import { useAuth } from "@/auth/AuthContext";
 
 export default function TabLayout() {
+  const { user, loading } = useAuth();
+
+  if (!user) {
+    // On web, static rendering will stop here as the user is not authenticated
+    // in the headless Node process that the pages are rendered in.
+    return <Redirect href="/welcome" />;
+  }
+
   return (
     <SafeAreaView
       style={{

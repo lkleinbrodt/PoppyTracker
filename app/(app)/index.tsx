@@ -54,12 +54,12 @@ export default function HomeScreen() {
   const isOverTarget = state.todayData
     ? state.todayData.amountFed > state.todayData.target
     : false;
-
+  console.log(state);
   return (
     <View style={styles.container}>
       <PawPrintBackground />
 
-      <Header title="Poppy's Food" />
+      <Header title="Poppy's Food" subtitle={date} />
 
       <ScrollView
         style={styles.scrollView}
@@ -85,6 +85,7 @@ export default function HomeScreen() {
                   min={0}
                   max={state.todayData.target * 2}
                   step={0.25}
+                  loading={state.loading}
                 />
 
                 <View style={styles.summaryContainer}>
@@ -129,6 +130,7 @@ export default function HomeScreen() {
                 min={0.25}
                 max={10}
                 step={0.25}
+                loading={state.loading}
               />
 
               <Text style={styles.targetNote}>

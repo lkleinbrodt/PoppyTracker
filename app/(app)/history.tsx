@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
-import { formatISO, getLastNDays } from "@/utils/dateFormat";
 
 import Card from "@/components/ui/Card";
 import Colors from "@/constants/Colors";
@@ -10,6 +9,8 @@ import HistoryCard from "@/components/history/HistoryCard";
 import PawPrintBackground from "@/components/ui/PawPrintBackground";
 import Theme from "@/constants/Theme";
 import WeekSummary from "@/components/history/WeekSummary";
+import { getLastNDays } from "@/utils/dateFormat";
+import { getTodayString } from "@/utils/dateFormat";
 import { useFeeding } from "@/context/FeedingContext";
 
 export default function HistoryScreen() {
@@ -24,17 +25,23 @@ export default function HistoryScreen() {
   // Extract weekly data when history changes
   useEffect(() => {
     if (state.history.length > 0) {
-      // Get dates for last 7 days
-      const lastWeekDates = getLastNDays(7).map((date) => formatISO(date));
+      // Get dates for last 7 days - now returns YYYY-MM-DD strings directly
+      const lastWeekDates = getLastNDays(7);
+      const today = getTodayString();
 
-      // Filter entries for last week
-      const weekEntries = state.history.filter((entry) =>
-        lastWeekDates.includes(entry.date)
+      // Filter entries for last week, excluding today
+      const weekEntries = state.history.filter(
+        (entry) => lastWeekDates.includes(entry.date) && entry.date !== today
       );
 
       setWeeklyData(weekEntries);
     }
   }, [state.history]);
+
+  // Filter out today's entries from the full history
+  const filteredHistory = state.history.filter(
+    (entry) => entry.date !== getTodayString()
+  );
 
   return (
     <View style={styles.container}>
@@ -54,15 +61,13 @@ export default function HistoryScreen() {
           <>
             <WeekSummary entries={weeklyData} />
 
-            {state.history.length > 0 ? (
-              state.history
+            {filteredHistory.length > 0 ? (
+              filteredHistory
                 .sort(
-                  (a, b) =>
-                    new Date(b.date).getTime() - new Date(a.date).getTime()
+                  // Sort by date string - newer dates (higher values) first
+                  (a, b) => (a.date > b.date ? -1 : a.date < b.date ? 1 : 0)
                 )
-                .map((entry, index) => (
-                  <HistoryCard key={entry.date} entry={entry} />
-                ))
+                .map((entry) => <HistoryCard key={entry.date} entry={entry} />)
             ) : (
               <Card>
                 <Text style={styles.emptyText}>

@@ -8,23 +8,6 @@ import { useEffect } from "react";
 import { useFrameworkReady } from "@/hooks/useFrameworkReady";
 import { useLoadFonts } from "@/hooks/useLoadFonts";
 
-function AuthLayout() {
-  const { user, loading } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!loading && !user) {
-      router.replace("/welcome");
-    }
-  }, [user, loading, router]);
-
-  if (loading) {
-    return null;
-  }
-
-  return <Slot />;
-}
-
 export default function RootLayout() {
   const isFrameworkReady = useFrameworkReady();
   const { fontsLoaded, fontError } = useLoadFonts();
@@ -36,11 +19,11 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <FeedingProvider>
-        <AuthProvider>
-          <AuthLayout />
-        </AuthProvider>
-      </FeedingProvider>
+      <AuthProvider>
+        <FeedingProvider>
+          <Slot />
+        </FeedingProvider>
+      </AuthProvider>
     </SafeAreaProvider>
   );
 }

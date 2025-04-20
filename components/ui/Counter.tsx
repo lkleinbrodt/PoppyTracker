@@ -1,5 +1,12 @@
 import * as Haptics from "expo-haptics";
 
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -7,7 +14,6 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { Minus, Plus } from "lucide-react-native";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import Colors from "@/constants/Colors";
 import { Platform } from "react-native";
@@ -21,6 +27,7 @@ type CounterProps = {
   max?: number;
   step?: number;
   disabled?: boolean;
+  loading?: boolean;
 };
 
 const Counter: React.FC<CounterProps> = ({
@@ -30,6 +37,7 @@ const Counter: React.FC<CounterProps> = ({
   max = 10,
   step = 0.25,
   disabled = false,
+  loading = false,
 }) => {
   // Animation values
   const plusScale = useSharedValue(1);
@@ -38,7 +46,7 @@ const Counter: React.FC<CounterProps> = ({
 
   // Handle increment
   const handleIncrement = () => {
-    if (disabled || value >= max) return;
+    if (disabled || value >= max || loading) return;
 
     // Apply haptic feedback on mobile platforms
     if (Platform.OS !== "web") {
@@ -62,7 +70,7 @@ const Counter: React.FC<CounterProps> = ({
 
   // Handle decrement
   const handleDecrement = () => {
-    if (disabled || value <= min) return;
+    if (disabled || value <= min || loading) return;
 
     // Apply haptic feedback on mobile platforms
     if (Platform.OS !== "web") {
@@ -111,19 +119,24 @@ const Counter: React.FC<CounterProps> = ({
             styles.button,
             value <= min && styles.buttonDisabled,
             disabled && styles.buttonDisabled,
+            loading && styles.buttonLoading,
           ]}
           onPress={handleDecrement}
-          disabled={disabled || value <= min}
+          disabled={disabled || value <= min || loading}
         >
-          <Minus
-            size={24}
-            color={
-              value <= min || disabled
-                ? Colors.text.disabled
-                : Colors.text.primary
-            }
-            strokeWidth={3}
-          />
+          {loading ? (
+            <ActivityIndicator color={Colors.text.primary} size="small" />
+          ) : (
+            <Minus
+              size={24}
+              color={
+                value <= min || disabled
+                  ? Colors.text.disabled
+                  : Colors.text.primary
+              }
+              strokeWidth={3}
+            />
+          )}
         </TouchableOpacity>
       </Animated.View>
 
@@ -138,19 +151,24 @@ const Counter: React.FC<CounterProps> = ({
             styles.button,
             value >= max && styles.buttonDisabled,
             disabled && styles.buttonDisabled,
+            loading && styles.buttonLoading,
           ]}
           onPress={handleIncrement}
-          disabled={disabled || value >= max}
+          disabled={disabled || value >= max || loading}
         >
-          <Plus
-            size={24}
-            color={
-              value >= max || disabled
-                ? Colors.text.disabled
-                : Colors.text.primary
-            }
-            strokeWidth={3}
-          />
+          {loading ? (
+            <ActivityIndicator color={Colors.text.primary} size="small" />
+          ) : (
+            <Plus
+              size={24}
+              color={
+                value >= max || disabled
+                  ? Colors.text.disabled
+                  : Colors.text.primary
+              }
+              strokeWidth={3}
+            />
+          )}
         </TouchableOpacity>
       </Animated.View>
     </View>
@@ -175,6 +193,10 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     backgroundColor: Colors.background.paper,
+    opacity: 0.7,
+  },
+  buttonLoading: {
+    backgroundColor: Colors.primary.light,
     opacity: 0.7,
   },
   valueContainer: {

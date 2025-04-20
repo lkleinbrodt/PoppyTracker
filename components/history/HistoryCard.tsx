@@ -1,18 +1,19 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { FeedingEntry } from '@/utils/storage';
-import Colors from '@/constants/Colors';
-import Theme from '@/constants/Theme';
-import Card from '@/components/ui/Card';
-import { format } from '@/utils/dateFormat';
+import { StyleSheet, Text, View } from "react-native";
+
+import Card from "@/components/ui/Card";
+import Colors from "@/constants/Colors";
+import { FeedingEntry } from "@/api/feeding-records";
+import React from "react";
+import Theme from "@/constants/Theme";
+import { format } from "@/utils/dateFormat";
 
 // Small cup component for history display
 const SmallCupIndicator = ({ filled }: { filled: boolean }) => (
-  <View 
+  <View
     style={[
-      styles.smallCup, 
-      { backgroundColor: filled ? Colors.secondary.main : 'transparent' }
-    ]} 
+      styles.smallCup,
+      { backgroundColor: filled ? Colors.secondary.main : "transparent" },
+    ]}
   />
 );
 
@@ -21,29 +22,26 @@ type HistoryCardProps = {
 };
 
 const HistoryCard: React.FC<HistoryCardProps> = ({ entry }) => {
-  // Format the date for display
-  const formattedDate = format(new Date(entry.date));
-  
+  // Format the date for display - using the improved format function that handles YYYY-MM-DD strings
+  const formattedDate = format(entry.date);
+
   // Generate cup indicators
   const renderCupIndicators = () => {
     const cups = [];
     const totalCups = Math.ceil(entry.target);
-    
+
     for (let i = 0; i < totalCups; i++) {
       cups.push(
-        <SmallCupIndicator 
-          key={i} 
-          filled={i < Math.floor(entry.amountFed)} 
-        />
+        <SmallCupIndicator key={i} filled={i < Math.floor(entry.amountFed)} />
       );
     }
-    
+
     return cups;
   };
-  
+
   // Calculate percentage of target reached
   const percentComplete = Math.min(100, (entry.amountFed / entry.target) * 100);
-  
+
   return (
     <Card style={styles.card}>
       <View style={styles.header}>
@@ -53,21 +51,21 @@ const HistoryCard: React.FC<HistoryCardProps> = ({ entry }) => {
           <Text style={styles.unit}>cups</Text>
         </View>
       </View>
-      
+
       <View style={styles.progressRow}>
-        <View style={styles.cupIndicators}>
-          {renderCupIndicators()}
-        </View>
+        <View style={styles.cupIndicators}>{renderCupIndicators()}</View>
         <View style={styles.percentContainer}>
-          <Text style={[
-            styles.percent,
-            percentComplete >= 100 ? styles.complete : null
-          ]}>
+          <Text
+            style={[
+              styles.percent,
+              percentComplete >= 100 ? styles.complete : null,
+            ]}
+          >
             {Math.round(percentComplete)}%
           </Text>
         </View>
       </View>
-      
+
       <View style={styles.targetRow}>
         <Text style={styles.targetText}>
           Daily Target: {entry.target.toFixed(2)} cups
@@ -83,9 +81,9 @@ const styles = StyleSheet.create({
     marginBottom: Theme.spacing.md,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: Theme.spacing.sm,
   },
   date: {
@@ -93,8 +91,8 @@ const styles = StyleSheet.create({
     color: Colors.primary.dark,
   },
   amountContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
+    flexDirection: "row",
+    alignItems: "flex-end",
   },
   amount: {
     ...Theme.text.title,
@@ -106,13 +104,13 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   progressRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginVertical: Theme.spacing.sm,
   },
   cupIndicators: {
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   smallCup: {
     width: 12,
@@ -124,7 +122,7 @@ const styles = StyleSheet.create({
   },
   percentContainer: {
     minWidth: 50,
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
   },
   percent: {
     ...Theme.text.body,
@@ -132,7 +130,7 @@ const styles = StyleSheet.create({
   },
   complete: {
     color: Colors.success.main,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   targetRow: {
     marginTop: Theme.spacing.xs,
