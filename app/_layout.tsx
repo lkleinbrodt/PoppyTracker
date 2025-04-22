@@ -1,26 +1,20 @@
-import { AuthProvider, useAuth } from "@/auth/AuthContext";
 import { Slot, useRouter } from "expo-router";
 
+import AppLoadingScreen from "@/components/layouts/AppLoadingScreen";
+import { AuthProvider } from "@/auth/AuthContext";
 import { FeedingProvider } from "@/context/FeedingContext";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { Stack } from "expo-router";
-import { useEffect } from "react";
-import { useFrameworkReady } from "@/hooks/useFrameworkReady";
-import { useLoadFonts } from "@/hooks/useLoadFonts";
+import { SplashScreen } from "expo-router";
+
+// Prevent splash screen from auto-hiding
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const isFrameworkReady = useFrameworkReady();
-  const { fontsLoaded, fontError } = useLoadFonts();
-
-  // Return null if fonts are not loaded yet
-  if (!fontsLoaded && !fontError) {
-    return null;
-  }
-
   return (
     <SafeAreaProvider>
       <AuthProvider>
         <FeedingProvider>
+          <AppLoadingScreen />
           <Slot />
         </FeedingProvider>
       </AuthProvider>

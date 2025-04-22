@@ -3,10 +3,15 @@ import { Redirect, Tabs } from "expo-router";
 
 import Colors from "@/constants/Colors";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Text } from "react-native";
 import { useAuth } from "@/auth/AuthContext";
 
 export default function TabLayout() {
   const { user, loading } = useAuth();
+
+  if (loading) {
+    return null;
+  }
 
   if (!user) {
     // On web, static rendering will stop here as the user is not authenticated

@@ -74,12 +74,12 @@ class AuthService {
       });
 
       // Log the credential for debugging
-      console.log("Apple Sign In Credential:", {
-        user: credential.user,
-        identityToken: credential.identityToken,
-        email: credential.email,
-        fullName: credential.fullName,
-      });
+      // console.log("Apple Sign In Credential:", {
+      //   user: credential.user,
+      //   identityToken: credential.identityToken,
+      //   email: credential.email,
+      //   fullName: credential.fullName,
+      // });
 
       // Send credentials to our backend
       const response = await apiClient.post<{
@@ -93,10 +93,10 @@ class AuthService {
       });
 
       // Log the response for debugging
-      console.log("Backend Sign In Response:", {
-        ok: response.ok,
-        error: response.error,
-      });
+      // console.log("Backend Sign In Response:", {
+      //   ok: response.ok,
+      //   error: response.error,
+      // });
 
       if (!response.ok || !response.data) {
         throw new Error(response.error?.message || "Sign in failed");

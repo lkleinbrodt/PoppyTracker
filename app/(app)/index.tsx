@@ -54,7 +54,7 @@ export default function HomeScreen() {
   const isOverTarget = state.todayData
     ? state.todayData.amountFed > state.todayData.target
     : false;
-  console.log(state);
+
   return (
     <View style={styles.container}>
       <PawPrintBackground />

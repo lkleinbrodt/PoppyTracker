@@ -83,7 +83,6 @@ export const updateDailyTarget = async (target: number): Promise<number> => {
  */
 export const getFeedingHistory = async (): Promise<FeedingEntry[]> => {
   const response = await apiClient.get<FeedingEntry[]>("/poppy/history");
-  console.log("history response", response);
 
   if (!response.ok || !response.data) {
     throw new Error(response.error?.message || "Failed to get feeding history");
