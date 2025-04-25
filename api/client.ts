@@ -31,6 +31,7 @@ class APIClient {
   private networkRetryCount = 3;
   private networkRetryDelay = 1000; // 1 second
   private baseURL: string;
+  private debugMode = true;
 
   private constructor() {
     const config = getApiConfig();
@@ -54,6 +55,22 @@ class APIClient {
       APIClient.instance = new APIClient();
     }
     return APIClient.instance;
+  }
+
+  public setDebugMode(enabled: boolean): void {
+    this.debugMode = enabled;
+  }
+
+  private logRequest(method: string, path: string, data?: any): void {
+    if (this.debugMode) {
+      console.log(`[API Request] ${method} ${path}`, data ? { data } : "");
+    }
+  }
+
+  private logResponse(method: string, path: string, response: any): void {
+    if (this.debugMode) {
+      console.log(`[API Response] ${method} ${path}`, response);
+    }
   }
 
   private getUserAgent(): string {
@@ -147,17 +164,20 @@ class APIClient {
   // Generic request methods with type safety
   async get<T>(path: string): Promise<APIResponse<T>> {
     try {
+      this.logRequest("GET", path);
       const headers = await this.getHeaders();
       const response = await fetch(`${this.baseURL}${path}`, {
         method: "GET",
         headers,
       });
       const data = await response.json();
-      return {
+      const result = {
         ok: response.ok,
         data: response.ok ? data : undefined,
         error: !response.ok ? data : undefined,
       };
+      this.logResponse("GET", path, result);
+      return result;
     } catch (error) {
       return {
         ok: false,
@@ -171,6 +191,7 @@ class APIClient {
 
   async post<T>(path: string, body?: any): Promise<APIResponse<T>> {
     try {
+      this.logRequest("POST", path, body);
       const headers = await this.getHeaders();
 
       // Don't set Content-Type for FormData, let the browser set it with the boundary
@@ -189,11 +210,13 @@ class APIClient {
             : undefined,
       });
       const data = await response.json();
-      return {
+      const result = {
         ok: response.ok,
         data: response.ok ? data : undefined,
         error: !response.ok ? data : undefined,
       };
+      this.logResponse("POST", path, result);
+      return result;
     } catch (error) {
       return {
         ok: false,
@@ -207,8 +230,9 @@ class APIClient {
 
   async put<T>(path: string, data?: object): Promise<APIResponse<T>> {
     return this.retryWithBackoff(async () => {
+      this.logRequest("PUT", path, data);
       const response = await this.api.put<T>(path, data);
-      return {
+      const result = {
         ok: response.ok,
         data: response.data,
         error: response.ok
@@ -221,22 +245,27 @@ class APIClient {
               details: response.data,
             },
       };
+      this.logResponse("PUT", path, result);
+      return result;
     });
   }
 
   async delete<T>(path: string): Promise<APIResponse<T>> {
     try {
+      this.logRequest("DELETE", path);
       const headers = await this.getHeaders();
       const response = await fetch(`${this.baseURL}${path}`, {
         method: "DELETE",
         headers,
       });
       const data = await response.json();
-      return {
+      const result = {
         ok: response.ok,
         data: response.ok ? data : undefined,
         error: !response.ok ? data : undefined,
       };
+      this.logResponse("DELETE", path, result);
+      return result;
     } catch (error) {
       return {
         ok: false,

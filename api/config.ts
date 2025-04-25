@@ -4,8 +4,8 @@ const API_CONFIG = {
     timeout: 30000,
   },
   production: {
-    baseURL: "https://api.landonkleinbrodt.com/api",
     timeout: 30000,
+    baseURL: "https://api.landonkleinbrodt.com/api",
   },
 };
 

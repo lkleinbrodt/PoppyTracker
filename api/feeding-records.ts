@@ -1,37 +1,42 @@
 /**
- * This file contains the API integration for feeding records
- * For future implementation with a backend server
+ * API integration for feeding records
  */
 
 import { apiClient } from "./client";
 
 export interface FeedingEntry {
-  date: string; // YYYY-MM-DD format
-  amountFed: number; // Number of cups
-  target: number; // Target cups per day
-  timestamp: number; // Unix timestamp
+  id: number;
+  timestamp: string; // ISO format
+  amount: number;
+  last_updated_by: string | null;
+  date?: string;
+  total?: number;
 }
+
+export interface DailySummary {
+  date: string; // YYYY-MM-DD format
+  amountFed: number;
+  target: number;
+  feedings: FeedingEntry[];
+}
+
 /**
- * Set today's food total
- * @param amount New total amount
- * @returns Promise with the new total
+ * Get all of today's feeding entries
  */
-export const setTodayTotal = async (amount: number): Promise<number> => {
-  const response = await apiClient.post<{ total: number }>(
-    "/poppy/daily/total",
-    { amount }
-  );
+export const getTodayFeedings = async (): Promise<FeedingEntry[]> => {
+  const response = await apiClient.get<FeedingEntry[]>("/poppy/daily/feedings");
 
   if (!response.ok || !response.data) {
-    throw new Error(response.error?.message || "Failed to set today's total");
+    throw new Error(
+      response.error?.message || "Failed to get today's feedings"
+    );
   }
 
-  return response.data.total;
+  return response.data;
 };
 
 /**
  * Get today's food total
- * @returns Promise with today's total
  */
 export const getTodayTotal = async (): Promise<number> => {
   const response = await apiClient.get<{ total: number }>("/poppy/daily/total");
@@ -45,7 +50,6 @@ export const getTodayTotal = async (): Promise<number> => {
 
 /**
  * Get the daily target amount
- * @returns Promise with daily target
  */
 export const getDailyTarget = async (): Promise<number> => {
   const response = await apiClient.get<{ target: number }>(
@@ -61,8 +65,6 @@ export const getDailyTarget = async (): Promise<number> => {
 
 /**
  * Update the daily target amount
- * @param target New target amount
- * @returns Promise with updated target
  */
 export const updateDailyTarget = async (target: number): Promise<number> => {
   const response = await apiClient.post<{ target: number }>(
@@ -79,10 +81,9 @@ export const updateDailyTarget = async (target: number): Promise<number> => {
 
 /**
  * Get historical feeding data
- * @returns Promise with feeding history array
  */
-export const getFeedingHistory = async (): Promise<FeedingEntry[]> => {
-  const response = await apiClient.get<FeedingEntry[]>("/poppy/history");
+export const getFeedingHistory = async (): Promise<DailySummary[]> => {
+  const response = await apiClient.get<DailySummary[]>("/poppy/history");
 
   if (!response.ok || !response.data) {
     throw new Error(response.error?.message || "Failed to get feeding history");
@@ -92,51 +93,15 @@ export const getFeedingHistory = async (): Promise<FeedingEntry[]> => {
 };
 
 /**
- * Submit a feeding record to API
- * @param record The feeding record to submit
- * @returns Promise with API response
+ * Add a new feeding entry
  */
-export const submitFeedingRecord = async (
-  record: FeedingEntry
-): Promise<FeedingEntry> => {
-  const response = await apiClient.post<FeedingEntry>(
-    "/poppy/feeding-records",
-    record
-  );
+export const addFeeding = async (amount: number): Promise<FeedingEntry> => {
+  const response = await apiClient.post<FeedingEntry>("/poppy/feeding", {
+    amount,
+  });
 
   if (!response.ok || !response.data) {
-    throw new Error(
-      response.error?.message || "Failed to submit feeding record"
-    );
-  }
-
-  return response.data;
-};
-
-/**
- * Get app settings from API
- * @returns Promise with settings object
- */
-export const getSettings = async (): Promise<any> => {
-  const response = await apiClient.get<any>("/poppy/settings");
-
-  if (!response.ok || !response.data) {
-    throw new Error(response.error?.message || "Failed to get settings");
-  }
-
-  return response.data;
-};
-
-/**
- * Update app settings in API
- * @param settings The settings object to update
- * @returns Promise with API response
- */
-export const updateSettings = async (settings: any): Promise<any> => {
-  const response = await apiClient.put<any>("/poppy/settings", settings);
-
-  if (!response.ok || !response.data) {
-    throw new Error(response.error?.message || "Failed to update settings");
+    throw new Error(response.error?.message || "Failed to add feeding");
   }
 
   return response.data;

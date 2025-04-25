@@ -28,6 +28,7 @@ type CounterProps = {
   step?: number;
   disabled?: boolean;
   loading?: boolean;
+  adjustmentMode?: boolean;
 };
 
 const Counter: React.FC<CounterProps> = ({
@@ -38,6 +39,7 @@ const Counter: React.FC<CounterProps> = ({
   step = 0.25,
   disabled = false,
   loading = false,
+  adjustmentMode = false,
 }) => {
   // Animation values
   const plusScale = useSharedValue(1);
@@ -46,7 +48,7 @@ const Counter: React.FC<CounterProps> = ({
 
   // Handle increment
   const handleIncrement = () => {
-    if (disabled || value >= max || loading) return;
+    if (disabled || (!adjustmentMode && value >= max) || loading) return;
 
     // Apply haptic feedback on mobile platforms
     if (Platform.OS !== "web") {
@@ -63,14 +65,20 @@ const Counter: React.FC<CounterProps> = ({
       valueScale.value = withSpring(1);
     });
 
-    // Update value
+    // In adjustment mode, just pass the step value
+    if (adjustmentMode) {
+      onChange(step);
+      return;
+    }
+
+    // Otherwise update value normally
     const newValue = Math.min(max, parseFloat((value + step).toFixed(2)));
     onChange(newValue);
   };
 
   // Handle decrement
   const handleDecrement = () => {
-    if (disabled || value <= min || loading) return;
+    if (disabled || (!adjustmentMode && value <= min) || loading) return;
 
     // Apply haptic feedback on mobile platforms
     if (Platform.OS !== "web") {
@@ -87,7 +95,13 @@ const Counter: React.FC<CounterProps> = ({
       valueScale.value = withSpring(1);
     });
 
-    // Update value
+    // In adjustment mode, just pass negative step value
+    if (adjustmentMode) {
+      onChange(-step);
+      return;
+    }
+
+    // Otherwise update value normally
     const newValue = Math.max(min, parseFloat((value - step).toFixed(2)));
     onChange(newValue);
   };
@@ -111,18 +125,25 @@ const Counter: React.FC<CounterProps> = ({
     };
   });
 
+  // Determine display value
+  //displayVlaue is always the value
+  const displayValue = value;
+  // Determine button states
+  const isDecrementDisabled = adjustmentMode ? false : value <= min;
+  const isIncrementDisabled = adjustmentMode ? false : value >= max;
+
   return (
     <View style={styles.container}>
       <Animated.View style={animatedMinusStyle}>
         <TouchableOpacity
           style={[
             styles.button,
-            value <= min && styles.buttonDisabled,
+            !adjustmentMode && value <= min && styles.buttonDisabled,
             disabled && styles.buttonDisabled,
             loading && styles.buttonLoading,
           ]}
           onPress={handleDecrement}
-          disabled={disabled || value <= min || loading}
+          disabled={disabled || (!adjustmentMode && value <= min) || loading}
         >
           {loading ? (
             <ActivityIndicator color={Colors.text.primary} size="small" />
@@ -130,7 +151,7 @@ const Counter: React.FC<CounterProps> = ({
             <Minus
               size={24}
               color={
-                value <= min || disabled
+                (!adjustmentMode && value <= min) || disabled
                   ? Colors.text.disabled
                   : Colors.text.primary
               }
@@ -141,7 +162,7 @@ const Counter: React.FC<CounterProps> = ({
       </Animated.View>
 
       <Animated.View style={[styles.valueContainer, animatedValueStyle]}>
-        <Text style={styles.valueText}>{value.toFixed(2)}</Text>
+        <Text style={styles.valueText}>{displayValue.toFixed(2)}</Text>
         <Text style={styles.unitText}>cups</Text>
       </Animated.View>
 
@@ -149,12 +170,12 @@ const Counter: React.FC<CounterProps> = ({
         <TouchableOpacity
           style={[
             styles.button,
-            value >= max && styles.buttonDisabled,
+            !adjustmentMode && value >= max && styles.buttonDisabled,
             disabled && styles.buttonDisabled,
             loading && styles.buttonLoading,
           ]}
           onPress={handleIncrement}
-          disabled={disabled || value >= max || loading}
+          disabled={disabled || (!adjustmentMode && value >= max) || loading}
         >
           {loading ? (
             <ActivityIndicator color={Colors.text.primary} size="small" />
@@ -162,7 +183,7 @@ const Counter: React.FC<CounterProps> = ({
             <Plus
               size={24}
               color={
-                value >= max || disabled
+                (!adjustmentMode && value >= max) || disabled
                   ? Colors.text.disabled
                   : Colors.text.primary
               }

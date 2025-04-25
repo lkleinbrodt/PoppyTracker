@@ -1,24 +1,19 @@
 /**
  * Date utilities for consistent date handling across the app
- * All dates are treated as Pacific Time (America/Los_Angeles)
+ * Backend uses UTC, frontend displays in local time
  */
-
-// The app's canonical timezone (matches backend)
-const APP_TIMEZONE = "America/Los_Angeles";
 
 /**
  * Parses an ISO date string (YYYY-MM-DD) to a Date object
- * Ensures consistent date interpretation regardless of user's timezone
- *
  * @param dateString ISO date string in YYYY-MM-DD format
- * @returns Date object representing that date in Pacific time
+ * @returns Date object representing that date in local time
  */
 export function parseISODate(dateString: string): Date {
   // Parse the YYYY-MM-DD string into year, month, day components
   const [year, month, day] = dateString.split("-").map(Number);
 
-  // Create date with the components (noon Pacific time to avoid any timezone issues)
-  // We use noon to ensure we're not near any day boundaries
+  // Create date with the components in local timezone
+  // We use noon to avoid any daylight saving time issues
   const date = new Date();
   date.setFullYear(year, month - 1, day);
   date.setHours(12, 0, 0, 0);
@@ -27,9 +22,7 @@ export function parseISODate(dateString: string): Date {
 }
 
 /**
- * Get today's date in YYYY-MM-DD format
- * This matches how the backend generates today's date
- *
+ * Get today's date in YYYY-MM-DD format in local timezone
  * @returns Today's date as YYYY-MM-DD string
  */
 export function getTodayString(): string {
@@ -43,7 +36,6 @@ export function getTodayString(): string {
 /**
  * Format a date for user-friendly display
  * Shows "Today", "Yesterday", or formatted date
- *
  * @param date Date object or YYYY-MM-DD string
  * @returns User-friendly date string
  */
@@ -120,4 +112,22 @@ export function formatISO(date: Date): string {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+}
+
+/**
+ * Convert a local Date to a UTC ISO string for sending to the backend
+ * @param date Local date
+ * @returns UTC ISO string
+ */
+export function toUTCString(date: Date): string {
+  return date.toISOString();
+}
+
+/**
+ * Convert a UTC ISO string from the backend to a local Date
+ * @param utcString UTC ISO string
+ * @returns Local Date object
+ */
+export function fromUTCToLocal(utcString: string): Date {
+  return new Date(utcString);
 }

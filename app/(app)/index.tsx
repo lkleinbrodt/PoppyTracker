@@ -1,5 +1,7 @@
+import { ChartLineIcon, Target } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -10,27 +12,35 @@ import {
 import Card from "@/components/ui/Card";
 import Colors from "@/constants/Colors";
 import Counter from "@/components/ui/Counter";
+import FeedingHistoryCard from "@/components/ui/FeedingHistoryCard";
 import FoodBowlGrid from "@/components/ui/FoodBowlGrid";
 import Header from "@/components/layouts/Header";
 import PawPrintBackground from "@/components/ui/PawPrintBackground";
-import { Target } from "lucide-react-native";
 import Theme from "@/constants/Theme";
-import { formatHeader } from "@/utils/dateFormat";
+import { formatLocalDate } from "@/utils/datetime";
 import { useFeeding } from "@/context/FeedingContext";
 
 export default function HomeScreen() {
-  const { state, setTodayTotal, resetToday, updateTarget } = useFeeding();
+  const { state, addFeedingAmount, updateTarget, refreshData } = useFeeding();
   const [date, setDate] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
 
   // Update the date display
   useEffect(() => {
-    setDate(formatHeader(new Date()));
+    // Get current date and format using our utilities
+    setDate(
+      new Date().toLocaleDateString(undefined, {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      })
+    );
   }, []);
 
-  // Handle setting food amount
-  const handleAmountChange = (newAmount: number) => {
-    if (newAmount >= 0) {
-      setTodayTotal(newAmount);
+  // Handle adding a feeding amount (positive or negative)
+  const handleFeedingAdjustment = (adjustment: number) => {
+    if (adjustment !== 0) {
+      addFeedingAmount(adjustment);
     }
   };
 
@@ -44,26 +54,34 @@ export default function HomeScreen() {
   // Get the subtitle for the header
   const getSubtitle = () => {
     if (state.loading) return "Loading...";
-    if (!state.todayData) return date;
-
-    const percentFed =
-      (state.todayData.amountFed / state.todayData.target) * 100;
-    return `${Math.round(percentFed)}% of daily goal`;
+    return date;
   };
 
   const isOverTarget = state.todayData
     ? state.todayData.amountFed > state.todayData.target
     : false;
 
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await refreshData();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refreshData]);
+
   return (
     <View style={styles.container}>
       <PawPrintBackground />
 
-      <Header title="Poppy's Food" subtitle={date} />
+      <Header title="Poppy's Food" subtitle={getSubtitle()} />
 
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
       >
         {state.loading ? (
           <Card>
@@ -73,20 +91,25 @@ export default function HomeScreen() {
           <>
             <Card>
               <View style={styles.headerRow}>
+                <ChartLineIcon size={20} color={Colors.primary.main} />
+
                 <Text style={styles.sectionTitle}>Today's Progress</Text>
               </View>
 
               <FoodBowlGrid cups={state.todayData.amountFed} size={36} />
 
               <View style={styles.trackerContainer}>
-                <Counter
-                  value={state.todayData.amountFed}
-                  onChange={handleAmountChange}
-                  min={0}
-                  max={state.todayData.target * 2}
-                  step={0.25}
-                  loading={state.loading}
-                />
+                <View style={styles.feedingContainer}>
+                  <Counter
+                    value={state.todayData.amountFed}
+                    onChange={(amount) => handleFeedingAdjustment(amount)}
+                    min={0.25}
+                    max={2}
+                    step={0.25}
+                    loading={state.loading}
+                    adjustmentMode={true}
+                  />
+                </View>
 
                 <View style={styles.summaryContainer}>
                   <View style={styles.summaryRow}>
@@ -117,6 +140,8 @@ export default function HomeScreen() {
                 </View>
               </View>
             </Card>
+
+            <FeedingHistoryCard feedings={state.todayData.feedings} />
 
             <Card>
               <View style={styles.targetHeader}>
@@ -174,9 +199,8 @@ const styles = StyleSheet.create({
   },
   headerRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: Theme.spacing.sm,
+    marginBottom: Theme.spacing.md,
   },
   sectionTitle: {
     ...Theme.text.subtitle,
@@ -188,6 +212,22 @@ const styles = StyleSheet.create({
   trackerContainer: {
     alignItems: "center",
     marginTop: Theme.spacing.md,
+  },
+  totalText: {
+    ...Theme.text.title,
+    fontSize: 32,
+    color: Colors.primary.dark,
+    marginBottom: Theme.spacing.md,
+  },
+  feedingContainer: {
+    width: "100%",
+    alignItems: "center",
+    marginVertical: Theme.spacing.sm,
+  },
+  feedingLabel: {
+    ...Theme.text.body,
+    color: Colors.text.secondary,
+    marginBottom: Theme.spacing.xs,
   },
   amountContainer: {
     alignItems: "center",

@@ -2,7 +2,7 @@ import { StyleSheet, Text, View } from "react-native";
 
 import Card from "@/components/ui/Card";
 import Colors from "@/constants/Colors";
-import { FeedingEntry } from "@/api/feeding-records";
+import { DailySummary } from "@/api/feeding-records";
 import React from "react";
 import Theme from "@/constants/Theme";
 import { format } from "@/utils/dateFormat";
@@ -18,11 +18,11 @@ const SmallCupIndicator = ({ filled }: { filled: boolean }) => (
 );
 
 type HistoryCardProps = {
-  entry: FeedingEntry;
+  entry: DailySummary;
 };
 
 const HistoryCard: React.FC<HistoryCardProps> = ({ entry }) => {
-  // Format the date for display - using the improved format function that handles YYYY-MM-DD strings
+  // Format the date for display
   const formattedDate = format(entry.date);
 
   // Generate cup indicators
