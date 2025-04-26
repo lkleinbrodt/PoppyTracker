@@ -38,6 +38,7 @@ export const getTodayFeedings = async (): Promise<FeedingEntry[]> => {
 /**
  * Get today's food total
  */
+//TODO: you dont really need to hit the backend for this, you can calculate it from the daily feedings
 export const getTodayTotal = async (): Promise<number> => {
   const response = await apiClient.get<{ total: number }>("/poppy/daily/total");
 

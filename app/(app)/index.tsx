@@ -17,7 +17,6 @@ import FoodBowlGrid from "@/components/ui/FoodBowlGrid";
 import Header from "@/components/layouts/Header";
 import PawPrintBackground from "@/components/ui/PawPrintBackground";
 import Theme from "@/constants/Theme";
-import { formatLocalDate } from "@/utils/datetime";
 import { useFeeding } from "@/context/FeedingContext";
 
 export default function HomeScreen() {

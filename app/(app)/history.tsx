@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 import Card from "@/components/ui/Card";
 import Colors from "@/constants/Colors";
-import { FeedingEntry } from "@/api/feeding-records";
+import { DailySummary } from "@/api/feeding-records";
 import Header from "@/components/layouts/Header";
 import HistoryCard from "@/components/history/HistoryCard";
 import PawPrintBackground from "@/components/ui/PawPrintBackground";
@@ -15,7 +15,7 @@ import { useFeeding } from "@/context/FeedingContext";
 
 export default function HistoryScreen() {
   const { state, refreshData } = useFeeding();
-  const [weeklyData, setWeeklyData] = useState<FeedingEntry[]>([]);
+  const [weeklyData, setWeeklyData] = useState<DailySummary[]>([]);
 
   // Refresh data when screen is focused
   useEffect(() => {
