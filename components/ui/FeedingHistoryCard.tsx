@@ -1,9 +1,9 @@
 import { StyleSheet, Text, View } from "react-native";
 
 import Card from "./Card";
-import { ClockIcon } from "lucide-react-native";
 import Colors from "@/constants/Colors";
 import { FeedingEntry } from "@/api/feeding-records";
+import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import Theme from "@/constants/Theme";
 import { groupFeedingsByNMinutes } from "@/utils/feedingUtils";
@@ -22,7 +22,11 @@ const FeedingHistoryCard: React.FC<FeedingHistoryCardProps> = ({
     return (
       <Card>
         <View style={styles.headerRow}>
-          <ClockIcon size={20} color={Colors.primary.main} />
+          <Ionicons
+            name="time-outline"
+            size={16}
+            color={Colors.text.secondary}
+          />
           <Text style={styles.title}>Today's Feedings</Text>
         </View>
         <Text style={styles.emptyText}>No feedings recorded yet today.</Text>
@@ -33,7 +37,7 @@ const FeedingHistoryCard: React.FC<FeedingHistoryCardProps> = ({
   return (
     <Card>
       <View style={styles.headerRow}>
-        <ClockIcon size={20} color={Colors.primary.main} />
+        <Ionicons name="time-outline" size={16} color={Colors.text.secondary} />
         <Text style={styles.title}>Today's Feedings</Text>
       </View>
 

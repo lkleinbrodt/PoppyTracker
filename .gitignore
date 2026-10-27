@@ -34,3 +34,5 @@ web-build/
 # Expo generated
 expo-env.d.ts
 # @end expo-cli
+# SpecStory explanation file
+.specstory/.what-is-this.md

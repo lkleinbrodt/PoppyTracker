@@ -1,4 +1,4 @@
-import { ApiResponse, create } from "apisauce";
+import axios, { AxiosError, AxiosInstance, AxiosResponse } from "axios";
 
 import Constants from "expo-constants";
 import NetInfo from "@react-native-community/netinfo";
@@ -23,20 +23,17 @@ export interface APIError {
   details?: any;
 }
 
-// API Configuration
-
 class APIClient {
   private static instance: APIClient;
-  private api;
+  private axiosInstance: AxiosInstance;
   private networkRetryCount = 3;
   private networkRetryDelay = 1000; // 1 second
-  private baseURL: string;
   private debugMode = true;
 
   private constructor() {
     const config = getApiConfig();
 
-    this.api = create({
+    this.axiosInstance = axios.create({
       baseURL: config.baseURL,
       timeout: config.timeout,
       headers: {
@@ -47,7 +44,6 @@ class APIClient {
     });
 
     this.setupInterceptors();
-    this.baseURL = config.baseURL;
   }
 
   public static getInstance(): APIClient {
@@ -80,7 +76,7 @@ class APIClient {
 
   private async setupInterceptors() {
     // Request interceptor
-    this.api.addRequestTransform(async (request: any) => {
+    this.axiosInstance.interceptors.request.use(async (config) => {
       // Check network connectivity
       const networkState = await NetInfo.fetch();
       if (!networkState.isConnected) {
@@ -90,34 +86,81 @@ class APIClient {
       // Add auth token if available
       const token = await getToken();
       if (token) {
-        request.headers["Authorization"] = `Bearer ${token}`;
+        config.headers["Authorization"] = `Bearer ${token}`;
       }
 
       // Add device info
-      request.headers["X-Device-Platform"] = Platform.OS;
-      request.headers["X-Device-Version"] = Platform.Version.toString();
+      config.headers["X-Device-Platform"] = Platform.OS;
+      config.headers["X-Device-Version"] = Platform.Version.toString();
 
-      return request;
+      return config;
     });
 
     // Response interceptor
-    this.api.addResponseTransform((response: ApiResponse<any>) => {
-      if (!response.ok) {
-        console.log("Error API Response:", {
-          url: response.config?.url,
-          status: response.status,
-          problem: response.problem,
-          data: response.data,
-        });
-        const error: APIError = {
-          code: response.problem || "UNKNOWN_ERROR",
-          message: response.data?.message || "An unexpected error occurred",
-          details: response.data,
+    this.axiosInstance.interceptors.response.use(
+      (response) => response,
+      (error: AxiosError) => {
+        const errorInfo = {
+          url: error.config?.url,
+          method: error.config?.method?.toUpperCase(),
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          problem: this.getProblemCode(error),
+          data: error.response?.data,
+          message: error.message,
+          code: error.code,
+          timestamp: new Date().toISOString(),
+          requestData: error.config?.data,
         };
-        throw error;
+
+        console.log("Error API Response:", {
+          endpoint: `${errorInfo.method} ${errorInfo.url}`,
+          status: errorInfo.status,
+          statusText: errorInfo.statusText,
+          problem: errorInfo.problem,
+          message: errorInfo.message,
+          data: errorInfo.data,
+          timestamp: errorInfo.timestamp,
+        });
+
+        const apiError: APIError = {
+          code: this.getProblemCode(error),
+          message: this.getErrorMessage(error),
+          details: {
+            errorInfo,
+            responseData: error.response?.data as Record<string, unknown>,
+          },
+        };
+        throw apiError;
       }
-      return response;
-    });
+    );
+  }
+
+  private getProblemCode(error: AxiosError): string {
+    if (error.code === "ECONNABORTED") return "TIMEOUT";
+    if (!error.response) return "NETWORK_ERROR";
+    if (error.response.status === 401) return "UNAUTHORIZED";
+    if (error.response.status === 403) return "FORBIDDEN";
+    if (error.response.status === 404) return "NOT_FOUND";
+    if (error.response.status >= 500) return "SERVER_ERROR";
+    if (error.response.status >= 400) return "CLIENT_ERROR";
+    return "UNKNOWN_ERROR";
+  }
+
+  private getErrorMessage(error: AxiosError): string {
+    if (error.code === "ECONNABORTED") return "Request timed out";
+    if (!error.response) return "Network connection failed";
+
+    return (
+      (error.response?.data as any)?.message ||
+      error.message ||
+      `Server returned ${error.response.status} ${error.response.statusText}`
+    );
+  }
+
+  private isRetryableError(error: any): boolean {
+    const retryableCodes = ["TIMEOUT", "NETWORK_ERROR", "SERVER_ERROR"];
+    return retryableCodes.includes(this.getProblemCode(error));
   }
 
   private async retryWithBackoff<T>(
@@ -142,40 +185,22 @@ class APIClient {
     }
   }
 
-  private isRetryableError(error: any): boolean {
-    const retryableCodes = ["TIMEOUT", "CONNECTION_ERROR", "NETWORK_ERROR"];
-    return retryableCodes.includes(error.code);
-  }
-
-  private async getHeaders(): Promise<Headers> {
-    const headers = new Headers({
-      "Content-Type": "application/json",
-    });
-
-    // Add auth token if available
-    const token = await getToken();
-    if (token) {
-      headers.append("Authorization", `Bearer ${token}`);
-    }
-
-    return headers;
+  private formatResponse<T>(response: AxiosResponse<T>): APIResponse<T> {
+    return {
+      ok: response.status >= 200 && response.status < 300,
+      data: response.data,
+      error: undefined,
+    };
   }
 
   // Generic request methods with type safety
   async get<T>(path: string): Promise<APIResponse<T>> {
     try {
       this.logRequest("GET", path);
-      const headers = await this.getHeaders();
-      const response = await fetch(`${this.baseURL}${path}`, {
-        method: "GET",
-        headers,
-      });
-      const data = await response.json();
-      const result = {
-        ok: response.ok,
-        data: response.ok ? data : undefined,
-        error: !response.ok ? data : undefined,
-      };
+      const response = await this.retryWithBackoff(() =>
+        this.axiosInstance.get<T>(path)
+      );
+      const result = this.formatResponse(response);
       this.logResponse("GET", path, result);
       return result;
     } catch (error) {
@@ -184,6 +209,8 @@ class APIClient {
         error: {
           message:
             error instanceof Error ? error.message : "Network request failed",
+          code: (error as APIError).code,
+          details: (error as APIError).details,
         },
       };
     }
@@ -192,29 +219,10 @@ class APIClient {
   async post<T>(path: string, body?: any): Promise<APIResponse<T>> {
     try {
       this.logRequest("POST", path, body);
-      const headers = await this.getHeaders();
-
-      // Don't set Content-Type for FormData, let the browser set it with the boundary
-      if (!(body instanceof FormData)) {
-        headers.set("Content-Type", "application/json");
-      }
-
-      const response = await fetch(`${this.baseURL}${path}`, {
-        method: "POST",
-        headers,
-        body:
-          body instanceof FormData
-            ? body
-            : body
-            ? JSON.stringify(body)
-            : undefined,
-      });
-      const data = await response.json();
-      const result = {
-        ok: response.ok,
-        data: response.ok ? data : undefined,
-        error: !response.ok ? data : undefined,
-      };
+      const response = await this.retryWithBackoff(() =>
+        this.axiosInstance.post<T>(path, body)
+      );
+      const result = this.formatResponse(response);
       this.logResponse("POST", path, result);
       return result;
     } catch (error) {
@@ -223,47 +231,42 @@ class APIClient {
         error: {
           message:
             error instanceof Error ? error.message : "Network request failed",
+          code: (error as APIError).code,
+          details: (error as APIError).details,
         },
       };
     }
   }
 
-  async put<T>(path: string, data?: object): Promise<APIResponse<T>> {
-    return this.retryWithBackoff(async () => {
+  async put<T>(path: string, data?: any): Promise<APIResponse<T>> {
+    try {
       this.logRequest("PUT", path, data);
-      const response = await this.api.put<T>(path, data);
-      const result = {
-        ok: response.ok,
-        data: response.data,
-        error: response.ok
-          ? undefined
-          : {
-              code: response.problem || "UNKNOWN_ERROR",
-              message:
-                (response.data as any)?.message ||
-                "An unexpected error occurred",
-              details: response.data,
-            },
-      };
+      const response = await this.retryWithBackoff(() =>
+        this.axiosInstance.put<T>(path, data)
+      );
+      const result = this.formatResponse(response);
       this.logResponse("PUT", path, result);
       return result;
-    });
+    } catch (error) {
+      return {
+        ok: false,
+        error: {
+          message:
+            error instanceof Error ? error.message : "Network request failed",
+          code: (error as APIError).code,
+          details: (error as APIError).details,
+        },
+      };
+    }
   }
 
   async delete<T>(path: string): Promise<APIResponse<T>> {
     try {
       this.logRequest("DELETE", path);
-      const headers = await this.getHeaders();
-      const response = await fetch(`${this.baseURL}${path}`, {
-        method: "DELETE",
-        headers,
-      });
-      const data = await response.json();
-      const result = {
-        ok: response.ok,
-        data: response.ok ? data : undefined,
-        error: !response.ok ? data : undefined,
-      };
+      const response = await this.retryWithBackoff(() =>
+        this.axiosInstance.delete<T>(path)
+      );
+      const result = this.formatResponse(response);
       this.logResponse("DELETE", path, result);
       return result;
     } catch (error) {
@@ -272,6 +275,8 @@ class APIClient {
         error: {
           message:
             error instanceof Error ? error.message : "Network request failed",
+          code: (error as APIError).code,
+          details: (error as APIError).details,
         },
       };
     }

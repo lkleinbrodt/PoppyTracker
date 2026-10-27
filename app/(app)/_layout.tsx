@@ -1,4 +1,4 @@
-import { Bone, History } from "lucide-react-native";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Redirect, Tabs } from "expo-router";
 
 import Colors from "@/constants/Colors";
@@ -46,7 +46,9 @@ export default function TabLayout() {
           name="index"
           options={{
             title: "Today",
-            tabBarIcon: ({ color, size }) => <Bone color={color} size={size} />,
+            tabBarIcon: ({ color, size }) => (
+              <MaterialCommunityIcons name="bone" size={size} color={color} />
+            ),
           }}
         />
         <Tabs.Screen
@@ -54,7 +56,16 @@ export default function TabLayout() {
           options={{
             title: "History",
             tabBarIcon: ({ color, size }) => (
-              <History color={color} size={size} />
+              <Ionicons name="time" size={size} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="schedule"
+          options={{
+            title: "Schedule",
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="calendar" size={size} color={color} />
             ),
           }}
         />

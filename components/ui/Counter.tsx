@@ -13,8 +13,8 @@ import Animated, {
   withSpring,
   withTiming,
 } from "react-native-reanimated";
-import { Minus, Plus } from "lucide-react-native";
 
+import { AntDesign } from "@expo/vector-icons";
 import Colors from "@/constants/Colors";
 import { Platform } from "react-native";
 import React from "react";
@@ -148,14 +148,14 @@ const Counter: React.FC<CounterProps> = ({
           {loading ? (
             <ActivityIndicator color={Colors.text.primary} size="small" />
           ) : (
-            <Minus
+            <AntDesign
+              name="minus"
               size={24}
               color={
                 (!adjustmentMode && value <= min) || disabled
                   ? Colors.text.disabled
                   : Colors.text.primary
               }
-              strokeWidth={3}
             />
           )}
         </TouchableOpacity>
@@ -180,14 +180,14 @@ const Counter: React.FC<CounterProps> = ({
           {loading ? (
             <ActivityIndicator color={Colors.text.primary} size="small" />
           ) : (
-            <Plus
+            <AntDesign
+              name="plus"
               size={24}
               color={
                 (!adjustmentMode && value >= max) || disabled
                   ? Colors.text.disabled
                   : Colors.text.primary
               }
-              strokeWidth={3}
             />
           )}
         </TouchableOpacity>

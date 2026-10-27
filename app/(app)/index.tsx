@@ -1,4 +1,3 @@
-import { ChartLineIcon, Target } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {
   RefreshControl,
@@ -15,6 +14,7 @@ import Counter from "@/components/ui/Counter";
 import FeedingHistoryCard from "@/components/ui/FeedingHistoryCard";
 import FoodBowlGrid from "@/components/ui/FoodBowlGrid";
 import Header from "@/components/layouts/Header";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import PawPrintBackground from "@/components/ui/PawPrintBackground";
 import Theme from "@/constants/Theme";
 import { useFeeding } from "@/context/FeedingContext";
@@ -90,7 +90,11 @@ export default function HomeScreen() {
           <>
             <Card>
               <View style={styles.headerRow}>
-                <ChartLineIcon size={20} color={Colors.primary.main} />
+                <MaterialCommunityIcons
+                  name="chart-line"
+                  size={24}
+                  color={Colors.primary.main}
+                />
 
                 <Text style={styles.sectionTitle}>Today's Progress</Text>
               </View>
@@ -144,7 +148,11 @@ export default function HomeScreen() {
 
             <Card>
               <View style={styles.targetHeader}>
-                <Target size={20} color={Colors.primary.main} />
+                <MaterialCommunityIcons
+                  name="target"
+                  size={24}
+                  color={Colors.primary.main}
+                />
                 <Text style={styles.targetTitle}>Daily Target</Text>
               </View>
 
@@ -177,7 +185,6 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background.default,
   },
   scrollView: {
     flex: 1,
